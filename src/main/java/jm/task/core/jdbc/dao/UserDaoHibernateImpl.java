@@ -3,97 +3,111 @@ package jm.task.core.jdbc.dao;
 import jm.task.core.jdbc.model.User;
 import jm.task.core.jdbc.util.Util;
 import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.Transaction;
 
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.List;
 
-import static jm.task.core.jdbc.util.Util.getSession;
+import static org.hibernate.resource.transaction.spi.TransactionStatus.ACTIVE;
+import static org.hibernate.resource.transaction.spi.TransactionStatus.MARKED_ROLLBACK;
+
 
 public class UserDaoHibernateImpl implements UserDao {
+    private static Transaction transaction;
+    private static final SessionFactory sessionFactory = Util.getSessionFactory();
 
     public UserDaoHibernateImpl() {
     }
 
-
     @Override
     public void createUsersTable() {
         String sqlCommand = "CREATE TABLE IF NOT EXISTS users (" +
-                "Id INT PRIMARY KEY AUTO_INCREMENT, name VARCHAR(45)," +
-                " lastName VARCHAR(45), age INT)";
-        Util util = new Util();
-
-        try (Statement statement = util.getConnection().createStatement()) {
-            statement.executeUpdate(sqlCommand);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+                "Id BIGINT PRIMARY KEY AUTO_INCREMENT, name VARCHAR(45)," +
+                " lastName VARCHAR(45), age TINYINT)";
+        try (Session session = sessionFactory.openSession()) {
+            transaction = session.getTransaction();
+            transaction.begin();
+            session.createSQLQuery(sqlCommand).executeUpdate();
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction.getStatus() == ACTIVE || transaction.getStatus() == MARKED_ROLLBACK) {
+                transaction.rollback();
+            }
         }
     }
-
 
     @Override
     public void dropUsersTable() {
         String sqlCommand = "DROP TABLE IF EXISTS users;";
-        Util util = new Util();
-        try (Statement statement = util.getConnection().createStatement()) {
-            statement.executeUpdate(sqlCommand);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+        try (Session session = sessionFactory.openSession()) {
+            transaction = session.getTransaction();
+            transaction.begin();
+            session.createSQLQuery(sqlCommand).executeUpdate();
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction.getStatus() == ACTIVE || transaction.getStatus() == MARKED_ROLLBACK) {
+                transaction.rollback();
+            }
         }
     }
 
     @Override
     public void saveUser(String name, String lastName, byte age) {
-        Util util = new Util();
-        Session session = getSession();
-        try {
-            session.beginTransaction();
+        try (Session session = sessionFactory.openSession()) {
+            transaction = session.getTransaction();
+            transaction.begin();
             session.save(new User(name, lastName, age));
             System.out.println("User с именем Ц " + name + " добавлен в базу данных");
-            session.getTransaction().commit();
-        } finally {
-            session.close();
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction.getStatus() == ACTIVE || transaction.getStatus() == MARKED_ROLLBACK) {
+                transaction.rollback();
+            }
         }
     }
 
     @Override
     public void removeUserById(long id) {
-        Util util = new Util();
-        Session session = getSession();
-        try {
-            session.beginTransaction();
-            session.delete(session.get(User.class, id));
-            session.getTransaction().commit();
-        } finally {
-            session.close();
+        try (Session session = sessionFactory.openSession()) {
+            transaction = session.getTransaction();
+            transaction.begin();
+            session.createQuery("delete from User where Id =" + id + "").executeUpdate();
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction.getStatus() == ACTIVE || transaction.getStatus() == MARKED_ROLLBACK) {
+                transaction.rollback();
+            }
         }
     }
 
     @Override
     public List<User> getAllUsers() {
-        Util util = new Util();
-        List<User> list;
-        Session session = getSession();
-        try {
-            session.beginTransaction();
+        List<User> list = new ArrayList<>();
+        try (Session session = sessionFactory.openSession()) {
+            transaction = session.getTransaction();
+            transaction.begin();
             list = session.createQuery("from User ").getResultList();
-            session.getTransaction().commit();
-        } finally {
-            session.close();
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction.getStatus() == ACTIVE || transaction.getStatus() == MARKED_ROLLBACK) {
+                transaction.rollback();
+            }
         }
         return list;
     }
 
     @Override
     public void cleanUsersTable() {
-        Util util = new Util();
-        Session session = getSession();
-        try {
-            session.beginTransaction();
+        try (Session session = sessionFactory.openSession()) {
+            transaction = session.getTransaction();
+            transaction.begin();
             session.createQuery("delete User ").executeUpdate();
-            session.getTransaction().commit();
-        } finally {
-            session.close();
+            transaction.commit();
+        } catch (Exception e) {
+            if (transaction.getStatus() == ACTIVE || transaction.getStatus() == MARKED_ROLLBACK) {
+                transaction.rollback();
+            }
         }
     }
 }

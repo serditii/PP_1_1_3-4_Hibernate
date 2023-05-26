@@ -8,16 +8,17 @@ import java.util.List;
 
 public class Main {
 
-    public static void main(String[] args) throws Exception {
-//        UserService userService = new UserServiceImpl();
-//        userService.createUsersTable();
-//        userService.saveUser("Nick1", "lastName1", (byte) 13);
-//        userService.saveUser("Nick2", "lastName2", (byte) 14);
-//        userService.saveUser("Nick3", "lastName3", (byte) 15);
-//        userService.saveUser("Nick4", "lastName4", (byte) 16);
-//        List<User> userList = userService.getAllUsers();
-//        System.out.println(userList.toString());
-//        userService.cleanUsersTable();
-//        userService.dropUsersTable();
+    public static void main(String[] args) {
+        UserService userService = new UserServiceImpl();
+        userService.createUsersTable();
+        userService.saveUser("Nick1", "lastName1", (byte) 13);
+        userService.saveUser("Nick2", "lastName2", (byte) 14);
+        userService.saveUser("Nick3", "lastName3", (byte) 15);
+        userService.saveUser("Nick4", "lastName4", (byte) 16);
+        userService.removeUserById(1L);
+        List<User> userList = userService.getAllUsers();
+        System.out.println(userList.toString());
+        userService.cleanUsersTable();
+        userService.dropUsersTable();
     }
 }

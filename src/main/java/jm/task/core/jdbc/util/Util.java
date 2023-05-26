@@ -1,40 +1,40 @@
 package jm.task.core.jdbc.util;
 
 import jm.task.core.jdbc.model.User;
-import org.hibernate.HibernateException;
-import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+
 
 public class Util {
-    private final String URL = "jdbc:mysql://localhost:3306/mydb1";
-    private final String USER = "root";
-    private final String PASSWORD = "root";
-    private Connection connection;
-    private static SessionFactory SessionFactory = null;
-
-    public static Session getSession() throws HibernateException {
-        return SessionFactory.openSession();
-    }
-
-    public Connection getConnection() {
-        return connection;
-    }
+    private static final String URL = "jdbc:mysql://localhost:3306/mydb1";
+    private static final String USER = "root";
+    private static final String PASSWORD = "root";
+    private static Connection connection;
 
     public Util() {
-        try {
-            Configuration configuration = new Configuration();
-            SessionFactory = configuration.addAnnotatedClass(User.class).buildSessionFactory();
-        } catch (Throwable ex) {
-            throw new ExceptionInInitializerError(ex);
-        }
+    }
 
+    public static Connection getConnection() {
         try {
             connection = DriverManager.getConnection(URL, USER, PASSWORD);
         } catch (SQLException ex) {
             ex.printStackTrace();
         }
+        return connection;
+    }
+
+    public static SessionFactory getSessionFactory() {
+        Configuration configuration = new Configuration();
+        SessionFactory sessionFactory;
+        try {
+            sessionFactory = configuration.addAnnotatedClass(User.class).buildSessionFactory();
+        } catch (Throwable ex) {
+            throw new ExceptionInInitializerError(ex);
+        }
+        return sessionFactory;
     }
 }
