@@ -18,15 +18,6 @@ public class Util {
     public Util() {
     }
 
-    public static Connection getConnection() {
-        try {
-            connection = DriverManager.getConnection(URL, USER, PASSWORD);
-        } catch (SQLException ex) {
-            ex.printStackTrace();
-        }
-        return connection;
-    }
-
     public static SessionFactory getSessionFactory() {
         Configuration configuration = new Configuration();
         SessionFactory sessionFactory;
