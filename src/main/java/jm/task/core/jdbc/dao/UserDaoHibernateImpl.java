@@ -5,13 +5,15 @@ import jm.task.core.jdbc.util.Util;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
+import org.hibernate.query.Query;
 
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.hibernate.resource.transaction.spi.TransactionStatus.ACTIVE;
 import static org.hibernate.resource.transaction.spi.TransactionStatus.MARKED_ROLLBACK;
-
 
 public class UserDaoHibernateImpl implements UserDao {
     private static Transaction transaction;
@@ -31,9 +33,6 @@ public class UserDaoHibernateImpl implements UserDao {
             session.createSQLQuery(sqlCommand).executeUpdate();
             transaction.commit();
         } catch (Exception e) {
-            if (transaction.getStatus() == ACTIVE || transaction.getStatus() == MARKED_ROLLBACK) {
-                transaction.rollback();
-            }
         }
     }
 
@@ -46,9 +45,6 @@ public class UserDaoHibernateImpl implements UserDao {
             session.createSQLQuery(sqlCommand).executeUpdate();
             transaction.commit();
         } catch (Exception e) {
-            if (transaction.getStatus() == ACTIVE || transaction.getStatus() == MARKED_ROLLBACK) {
-                transaction.rollback();
-            }
         }
     }
 
@@ -72,7 +68,7 @@ public class UserDaoHibernateImpl implements UserDao {
         try (Session session = sessionFactory.openSession()) {
             transaction = session.getTransaction();
             transaction.begin();
-            session.createQuery("delete from User where Id =" + id + "").executeUpdate();
+            session.createQuery("delete from User where Id=:id").setParameter("id", id).executeUpdate();
             transaction.commit();
         } catch (Exception e) {
             if (transaction.getStatus() == ACTIVE || transaction.getStatus() == MARKED_ROLLBACK) {
